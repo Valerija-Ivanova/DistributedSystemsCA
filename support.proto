@@ -1,0 +1,97 @@
+// Required syntax for the right version of the protobuffer
+syntax = "proto3";
+
+// Package used for the project Customer Support
+package support;
+
+// Code to allow content streaming
+option java_multiple_files = true;
+
+
+// SERVICE 1 - Automated Ticketing
+
+
+// Define the Support Service Livechat Connection: Client is initially presented with option to talk to a Chatbot or a real person
+service Contact {
+	rpc ChatToPerson (ChatRequest) returns (stream QueueResponse);
+	rpc ChatToBot (ChatRequest) returns (ChatResponse);
+}
+
+// Request message: Sends Client's choice of whether to speak to a Chatbot or an Employee, contains user ID and product ID, which the server logs
+message ChatRequest {
+    int32 option = 1;
+	int32 userID = 2;
+	int32 itemID = 3;
+}
+
+// Response message: Sends Server's string 'Waiting for available employee.' then 'You are X in the queue.'
+// Counts down until the user is at the front of the queue, then sends string 'You've been connected to an employee! Please ask your question. Type 'x' to exit.' then after closing sends string 'Has your problem been fixed? y/n'
+message QueueResponse {
+    string queueMsg = 1;
+}
+
+// Response message: Sends Server's string 'You've been connected to a bot! Please ask your question. Type 'x' to exit.' then after closing sends string 'Has your problem been fixed? y/n'
+message ChatResponse {
+    string botMsg = 1;
+}
+
+
+// SERVICE 2 - Bidirectional chat with a Bot
+
+
+// Define the Support Service Chatbot: Bidirectional stream of messages between the Client and Chatbot
+service Chatbot {
+    rpc Chat (stream ChatQuestion) returns (stream ChatAnswer);
+}
+
+// Request message: Sends Client's message to the chat service
+message ChatQuestion {
+	int32 userID = 1;
+	string question = 2;
+}
+
+// Response message: Sends Bot or Employee's message to the chat service
+message ChatAnswer {
+    string answer = 1;
+}
+
+
+// SERVICE 3 - Sentiment Analysis
+
+
+// Define the Support Service Sentiment Analysis: If user types 'y' or 'Y' or 'yes' or 'Yes', the service sends a closing statement. Otherwise, it asks for a photo/screenshot of the issue and promises to get in touch later.
+service SentimentAnalysis {
+	rpc Review (ReviewRequest) returns (ReviewResponse);
+}
+
+// Request message: Sends request to Server containing user and item details as well as whether the issue was fixed and the string answering what their problem was.
+message ReviewRequest {
+	int32 userID = 1;
+	int32 satisfaction = 2;
+	string reviewResult = 3;
+}
+
+// Response message: Sends response to Client with a string 'Glad we could help!' if satisfied, or 'Sorry we couldn't help you.' if not satisfied.
+message ReviewResponse {
+	string reviewResponse = 1;
+}
+
+
+// SERVICE 4 - Image Upload
+
+
+// Define the Support Service Image Upload: Asks the user to upload a photo or screenshot of the issue, if they do, stores it on the server, promises to get back to the user via email if there is an update.
+service ImageUpload {
+	rpc PhotoUpload (stream PhotoRequest) returns (PhotoResponse);
+}
+
+// Request message: Sends stream of file data containing an image of the issue to the server.
+message PhotoUpload {
+	int32 userID = 1;
+	bytes photo = 2;
+}
+
+// Response message: Sends response to Client via string 'Thank you for your response, we'll contact you via email with any updates about your issue.'
+message PhotoResponse {
+	string photoReply = 1;
+}
