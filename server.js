@@ -68,6 +68,7 @@ const contactService = {
 	
 }
 
+// Implement the chatbot service
 const chatbotService = {
 	
 	Chat : (call, callback) => {
@@ -103,6 +104,7 @@ const chatbotService = {
 	
 }
 
+// Implement the Sentiment Analysis Service
 const sentimentAnalysisService = {
 	
 	Review (call, callback) => {
@@ -111,6 +113,7 @@ const sentimentAnalysisService = {
 		const satisfaction = call.request.satisfaction;
 		const reviewResult = call.request.reviewResult;
 		
+		// If the client was satisfied, happy = yes, if not, happy = no
 		if (satisfaction == 1){
 			const happy = 'Yes';
 			const reviewResponse = 'Glad we could help!';
@@ -129,7 +132,7 @@ const sentimentAnalysisService = {
 			console.log('File written successfully!');
 		});
 		
-		// Write the customer's review
+		// Write the customer's review/report
 		fs.appendFile(userID+'_report.txt', 'Customer comment: '+reviewResult+'\n\n', 'utf8', (err) => {
 			if (err) {
 				console.error('Error writing file:', err);
@@ -144,12 +147,13 @@ const sentimentAnalysisService = {
 	
 }
 
+// Implement the Image Upload service
 const imageUploadService = {
 	
 	PhotoUpload: (call, callback) => {
 		
 		const userID = call.request.userID;
-		const folderName = (userID+'_image');
+		const folderName = (userID+'_image'); // Folder uses client's userID in the name to identify it
 		const folderPath = '/images';
 		
 		try { // Attempt to create a folder with the user's ID to contain the image if none exists in the images folder.
@@ -160,14 +164,17 @@ const imageUploadService = {
 			console.error(err);
 		}
 		
+		// Take user's submitted file
 		const photo = call.request.photo;
 		
 		const app = express();
 		
 		app.use(fileUpload());
 		
+		// Use the images directory in the project folder
 		app.use(('/images/'+folderName), express.static(path.join(__dirname,('/images/'+folderName))));
 		
+		// post the file inside the images directory in a newly created folder
 		app.post(('/images/'+folderName), (req, res) => {
 			
 			if (!req.files || Object.keys(req.files).length === 0) {
@@ -186,6 +193,7 @@ const imageUploadService = {
 			});
 		}
 		
+		// Return response once upload is complete
 		const photoReply = 'Image uploaded successfully. Sorry we could not help, we will send you an email if there is an update regarding your issue!';
 		callback(null, { photoReply });
 		
